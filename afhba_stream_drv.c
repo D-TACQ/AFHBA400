@@ -894,11 +894,12 @@ static int afs_isr_work(void *arg)
 	afs_comms_init(adev);
 
 	for ( ; 1; ++loop_count){
+		int TO = job_is_go(job)? WORK_TO: HZ;
 		int timeout = wait_event_interruptible_timeout(
 			sdev->work.w_waitq,
 			test_and_clear_bit(WORK_REQUEST, &sdev->work.w_to_do) ||
 			kthread_should_stop(),
-			WORK_TO) == 0;
+			TO) == 0;
 
 		if (!timeout || loop_count%10 == 0){
 			dev_dbg(pdev(adev), "TIMEOUT? %d queue_free_buffers() ? %d",
