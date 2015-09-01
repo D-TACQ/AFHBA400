@@ -393,8 +393,9 @@ static void aurora_reset(struct AFHBA_DEV *adev)
 {
 	unsigned ac = afhba_read_reg(adev, AURORA_CONTROL_REG);
 	afhba_write_reg(adev, AURORA_CONTROL_REG, ac|AFHBA_AURORA_CTRL_RESET);
-	msleep(1);
+	msleep(10);
 	afhba_write_reg(adev, AURORA_CONTROL_REG, ac);
+	msleep(490);
 }
 
 static int _afs_comms_init(struct AFHBA_DEV *adev)
@@ -406,8 +407,6 @@ static int _afs_comms_init(struct AFHBA_DEV *adev)
 	afhba_write_reg(adev, AURORA_CONTROL_REG, AFHBA_AURORA_CTRL_ENA);
 
 	while((as = afs_aurora_lane_up(adev)) != AS_LANE_UP){
-		dev_info(pdev(adev), "aurora polling LANEUP %d/%d msecs", to, aurora_to_ms);
-
 		if (as == AS_HAS_SIGNAL){
 			dev_warn(pdev(adev), "aurora has signal but LANE DOWN, reset");
 			aurora_reset(adev);
