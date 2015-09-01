@@ -447,8 +447,7 @@ int afs_comms_init(struct AFHBA_DEV *adev)
 			dev_info(pdev(adev), "aurora lane down!");
 			adev->link_up = false;
 		}
-
-		return sdev->comms_init_done = false;
+		return _afs_comms_init(adev);
 	}
 }
 
