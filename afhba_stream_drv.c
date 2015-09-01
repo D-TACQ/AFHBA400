@@ -295,11 +295,22 @@ static inline int afs_dma_started(struct AFHBA_DEV *adev, enum DMA_SEL dma_sel)
 }
 
 
-static int afs_aurora_lane_up(struct AFHBA_DEV *adev)
+enum AURORA_STATUS {
+	AS_LOS,
+	AS_HAS_SIGNAL,
+	AS_LANE_UP
+};
+static enum AURORA_STATUS afs_aurora_lane_up(struct AFHBA_DEV *adev)
 {
 	u32 stat = afhba_read_reg(adev, AURORA_STATUS_REG);
 	++aurora_status_read_count;
-	return (stat & AFHBA_AURORA_STAT_LANE_UP) != 0;
+	if ((stat & AFHBA_AURORA_STAT_LANE_UP) != 0){
+		return AS_LANE_UP;
+	}else if ((stat & AFHBA_AURORA_STAT_SFP_LOS) != 0){
+		return AS_LOS;
+	}else{
+		return AS_HAS_SIGNAL;
+	}
 }
 
 static int afs_aurora_errors(struct AFHBA_DEV *adev)
@@ -374,18 +385,36 @@ static int _afs_check_read(struct AFHBA_DEV *adev)
 	}
 }
 
+static void aurora_reset(struct AFHBA_DEV *adev)
+{
+	unsigned ac = afhba_read_reg(adev, AURORA_CONTROL_REG);
+	afhba_write_reg(adev, AURORA_CONTROL_REG, ac|AFHBA_AURORA_CTRL_RESET);
+	msleep(1);
+	afhba_write_reg(adev, AURORA_CONTROL_REG, ac);
+}
+
 static int _afs_comms_init(struct AFHBA_DEV *adev)
 {
 	struct AFHBA_STREAM_DEV* sdev = adev->stream_dev;
 	int to = 0;
-
+	enum AURORA_STATUS as;
 
 	afhba_write_reg(adev, AURORA_CONTROL_REG, AFHBA_AURORA_CTRL_ENA);
 
-	while(!afs_aurora_lane_up(adev)){
-		msleep(to += MSLEEP_TO);
-		if (to > aurora_to_ms){
-			return 0;
+	while((as = afs_aurora_lane_up(adev)) != AS_LANE_UP){
+		dev_info(pdev(adev), "aurora polling LANEUP %d/%d msecs", to, aurora_to_ms);
+
+		if (as == AS_HAS_SIGNAL){
+			dev_warn(pdev(adev), "aurora has signal but LANE DOWN, reset");
+			aurora_reset(adev);
+			msleep(2*MSLEEP_TO);
+			to += 2*MSLEEP_TO;
+			continue;
+		}else{
+			msleep(to += MSLEEP_TO);
+			if (to > aurora_to_ms){
+				return 0;
+			}
 		}
 	}
 	/* ... now make _sure_ it's up .. */
@@ -399,9 +428,9 @@ int afs_comms_init(struct AFHBA_DEV *adev)
 {
 	struct AFHBA_STREAM_DEV* sdev = adev->stream_dev;
 
-	if (afs_aurora_lane_up(adev)){
+	if (afs_aurora_lane_up(adev) == AS_LANE_UP){
 		if (!adev->link_up){
-			dev_info(pdev(adev), "aurora link up!");
+			dev_info(pdev(adev), "aurora lane up!");
 			adev->link_up = true;
 		}
 		if (!sdev->comms_init_done){
@@ -411,10 +440,10 @@ int afs_comms_init(struct AFHBA_DEV *adev)
 		return sdev->comms_init_done;
 	}else{
 		if (adev->link_up){
-			dev_info(pdev(adev), "aurora link down!");
+			dev_info(pdev(adev), "aurora lane down!");
 			adev->link_up = false;
 		}
-		dev_dbg(pdev(adev), "aurora lane down");
+
 		return sdev->comms_init_done = false;
 	}
 }
