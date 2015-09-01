@@ -32,4 +32,9 @@ echo LLC $LLCPID done, now kill $TSTPID
 
 $TST cleanup
 
+llc_runner_cleanup() {
+	echo cleanup: kill $LLCPID
+	kill -9 $LLCPID
+}
 
+trap "llc_runner_cleanup" SIGINT SIGTERM
