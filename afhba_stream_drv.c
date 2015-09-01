@@ -385,7 +385,7 @@ static int _afs_check_read(struct AFHBA_DEV *adev)
 		dev_info(pdev(adev), "[%d] Z_IDENT 1:0x%08x 2:0x%08x %s",
 			adev->idx, z_ident1, z_ident2,
 			valid_id? buf: "ID NOT VALID");
-		return 0;
+		return valid_id;
 	}
 }
 
@@ -411,9 +411,7 @@ static int _afs_comms_init(struct AFHBA_DEV *adev)
 		if (as == AS_HAS_SIGNAL){
 			dev_warn(pdev(adev), "aurora has signal but LANE DOWN, reset");
 			aurora_reset(adev);
-			msleep(2*MSLEEP_TO);
-			to += 2*MSLEEP_TO;
-			continue;
+			return 0;
 		}else{
 			msleep(to += MSLEEP_TO);
 			if (to > aurora_to_ms){
