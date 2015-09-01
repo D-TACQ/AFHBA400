@@ -423,7 +423,7 @@ static int _afs_comms_init(struct AFHBA_DEV *adev)
 	msleep(MSLEEP_TO);
 	_afs_pcie_mirror_init(adev);
 
-	return sdev->comms_init_done = _afs_check_read(adev) == 0;
+	return sdev->comms_init_done = _afs_check_read(adev) == 1;
 }
 
 int afs_comms_init(struct AFHBA_DEV *adev)
