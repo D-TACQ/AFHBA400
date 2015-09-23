@@ -129,6 +129,7 @@ struct AFHBA_DEV {
 
 	struct platform_device *hba_sfp_i2c[2];
 
+	unsigned long last_amon_jiffies;
 	int link_up;
 	int aurora_error_count;
 };

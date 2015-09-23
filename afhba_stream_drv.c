@@ -429,7 +429,9 @@ int afs_comms_init(struct AFHBA_DEV *adev)
 {
 	struct AFHBA_STREAM_DEV* sdev = adev->stream_dev;
 
-	if (afs_aurora_lane_up(adev) == AS_LANE_UP){
+	if (time_before(jiffies, adev->last_amon_jiffies+HZ)){
+		return sdev->comms_init_done;
+	}else if (afs_aurora_lane_up(adev) == AS_LANE_UP){
 		if (!adev->link_up){
 			dev_info(pdev(adev), "aurora lane up!");
 			adev->link_up = true;
@@ -929,6 +931,7 @@ static int afs_isr_work(void *arg)
 
 		if (job->buffers_demand > 0 ){
 			if (queue_full_buffers(adev) > 0){
+				adev->last_amon_jiffies = jiffies;
 				wake_up_interruptible(&sdev->return_waitq);
 			}
 		}
