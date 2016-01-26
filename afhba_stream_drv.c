@@ -38,6 +38,7 @@
 #include "afhba_stream_drv.h"
 
 #include <linux/version.h>
+#include <linux/signal.h>
 
 #define REVID	"1004"
 
@@ -445,7 +446,12 @@ int afs_comms_init(struct AFHBA_DEV *adev)
 		if (adev->link_up){
 			dev_info(pdev(adev), "aurora lane down!");
 			/* could be a client waiting for trigger .. */
-			wake_up_interruptible(&sdev->return_waitq);
+
+			spin_lock(&sdev->job_lock);
+			if (sdev->dma_reader){
+				send_sig(SIGINT, sdev->dma_reader, 1);
+			}
+			spin_unlock(&sdev->job_lock);
 			adev->link_up = false;
 		}
 		return _afs_comms_init(adev);
@@ -1179,11 +1185,11 @@ int afs_dma_open(struct inode *inode, struct file *file)
 		return -ERESTARTSYS;
 	}
 	/** @@todo protect with lock ? */
-	if (sdev->pid == 0){
-		sdev->pid = current->pid;
+	if (sdev->dma_reader == 0){
+		sdev->dma_reader = current;
 	}
 
-	if (sdev->pid != current->pid){
+	if (sdev->dma_reader != current){
 		return -EBUSY;
 	}
 
@@ -1236,6 +1242,7 @@ int afs_dma_release(struct inode *inode, struct file *file)
 	sdev->job.on_push_dma_timeout = 0;
 	sdev->job.on_pull_dma_timeout = 0;
 	sdev->job.buffers_demand = 0;
+	sdev->dma_reader = 0;
 	spin_unlock(&sdev->job_lock);
 
 
@@ -1247,7 +1254,7 @@ int afs_dma_release(struct inode *inode, struct file *file)
 		sdev->onStopPush(adev);
 		sdev->onStopPush = 0;
 	}
-	sdev->pid = 0;
+
 	return afhba_release(inode, file);
 }
 

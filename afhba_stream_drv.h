@@ -128,7 +128,8 @@ struct AFHBA_STREAM_DEV {
 
 	u32 dma_regs[DMA_REGS_COUNT];
 
-	unsigned pid;		/* pid of dma_read process */
+	struct task_struct* dma_reader;
+
 	int req_len;		/* request len .. not part of job ? */
 	void (* onStopPull)(struct AFHBA_DEV *adev);
 	void (* onStopPush)(struct AFHBA_DEV *adev);
