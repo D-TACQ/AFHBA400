@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# stream-loop : run it forever
+
+NLOOP=0
+
+while [ 1 ] ; do
+	DOWN=1
+	while [ $DOWN -ne 0 ]; do
+		grep +LANE_UP /dev/rtm-t.0.ctrl/aurora
+		DOWN=$?
+		[ $DOWN -ne 0 ] && sleep 2
+	done
+	let NLOOP=$NLOOP+1
+	echo $(date) SHOT $NLOOP
+	logger -t stream-loop SHOT $NLOOP
+	./scripts/stream-to-ramdisk 2>&1 | grep --line-buffered 0$
+	echo SHOT $NLOOP terminated
+	echo -----------------------
+done
