@@ -445,7 +445,7 @@ int afs_comms_init(struct AFHBA_DEV *adev)
 		if (adev->link_up){
 			dev_info(pdev(adev), "aurora lane down!");
 			/* could be a client waiting for trigger .. */
-			wait_up_interruptible(&sdev->return_waitq);
+			wake_up_interruptible(&sdev->return_waitq);
 			adev->link_up = false;
 		}
 		return _afs_comms_init(adev);
