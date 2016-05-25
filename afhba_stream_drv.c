@@ -1475,6 +1475,7 @@ write99:
 	return rc;
 }
 
+
 long afs_dma_ioctl(struct file *file,
                         unsigned int cmd, unsigned long arg)
 {
@@ -1495,6 +1496,8 @@ long afs_dma_ioctl(struct file *file,
 		long rc;
 		COPY_FROM_USER(&xllc_def, varg, sizeof(struct XLLC_DEF));
 		rc =  afs_start_ai_llc(adev, &xllc_def);
+		DEV_DBG(pdev(adev), "afs_dma_ioctl() AFHBA_START_AI_LLC pa:%08x len:%d",
+				xllc_def.pa, xllc_def.len);
 		COPY_TO_USER(varg, &xllc_def, sizeof(struct XLLC_DEF));
 		return rc;
 	}
@@ -1503,6 +1506,8 @@ long afs_dma_ioctl(struct file *file,
 		long rc;
 		COPY_FROM_USER(&xllc_def, varg, sizeof(struct XLLC_DEF));
 		rc = afs_start_ao_llc(adev, &xllc_def);
+		DEV_DBG(pdev(adev), "afs_dma_ioctl() AFHBA_START_AO_LLC pa:%08x len:%d",
+						xllc_def.pa, xllc_def.len);
 		COPY_TO_USER(varg, &xllc_def, sizeof(struct XLLC_DEF));
 		return rc;
 	}
