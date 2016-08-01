@@ -40,7 +40,7 @@
 #include <linux/version.h>
 #include <linux/signal.h>
 
-#define REVID	"1004"
+#define REVID	"1005"
 
 int RX_TO = 1*HZ;
 module_param(RX_TO, int, 0644);
@@ -231,6 +231,7 @@ static void afs_load_push_descriptor(struct AFHBA_DEV *adev, int idesc)
 static void afs_init_dma_clr(struct AFHBA_DEV *adev)
 {
 	DMA_CTRL_RD(adev);
+	DMA_CTRL_CLR(adev, dma_pp(DMA_BOTH_SEL, DMA_CTRL_PUSH_DESCR_RAM));
 	afs_dma_reset(adev, DMA_BOTH_SEL);
 }
 
