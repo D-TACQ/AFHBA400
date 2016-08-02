@@ -299,6 +299,8 @@ inline static const char*  sDMA_SEL(enum DMA_SEL dma_sel)
 #define DMA_CTRL_LOW_LAT		0x0020
 #define DMA_CTRL_RECYCLE		0x0040
 
+#define DMA_CTRL_PUSH_DESCR_RAM	0x8000
+
 
 #define DMA_DESCR_ADDR			0xfffffc00
 #define DMA_DESCR_INTEN			0x00000100
