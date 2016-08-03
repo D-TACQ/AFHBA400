@@ -29,7 +29,7 @@ do
 if [ $verbose -ne 0 ]; then
 	echo 
 	echo
-	echo "forxv $* iteration $count"
+	echo "forxv $* iteration $count of $maxcount"
 	echo
 fi
 eval $*

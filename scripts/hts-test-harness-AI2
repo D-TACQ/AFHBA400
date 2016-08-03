@@ -6,6 +6,7 @@
 
 # MUST set remote ip-address
 REMIP=${1:-acq2106_005}
+DURATION=${2:-99999}
 INTCLKDIV=${INTCLKDIV:-100}		# 100M/100 = 1MHz
 EXTCLKDIV=${EXTCLKDIV:-1}		# 1M/1 = 1MHz
 STREAMPID=0
@@ -69,5 +70,8 @@ start_stream
 echo CTRL-C to quit
 trap "cleanup" SIGINT SIGTERM
 
-sleep 99999
+sleep ${DURATION}
+cat /proc/driver/afhba/afhba.0/Job
+cleanup
+sleep 2
 
