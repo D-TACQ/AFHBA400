@@ -1,0 +1,11 @@
+#!/bin/sh
+DC=$(date +%y%m%d%H%M%S)
+
+yn=n
+
+while [ "$yn" != "y" ]; do
+	echo ARE YOU SURE; read yn
+done
+
+mv ctrl.log OLDLOGS/ctrl-$DC.log
+echo OLDLOGS/ctrl-$DC.log created

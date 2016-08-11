@@ -1,0 +1,8 @@
+#!/bin/bash
+
+LOG=${1:-ctrl.log}
+echo $LOG
+grep afhba.0 $LOG | awk '{print $5 }' | cut -c 4- | sort -n | uniq -c | awk 'BEGIN { sum=0; print "FREQ RXCOUNT" }
+{ sum += $1; print $1" "$2 }
+END { print sum " TOTAL SHOTS" }'
+
