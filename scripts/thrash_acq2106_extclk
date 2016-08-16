@@ -1,0 +1,35 @@
+#!/usr/bin/bash
+# thrasher : run two procServ instances:
+# CTRL and DATA
+
+UUT=${UUT:-acq2106_039}
+ITER=${1:-100}
+SHOT_TIME=${2:-60}
+
+CTRL_PID=./ctrl.pid
+DATA_PID=./data.pid
+
+CTRL_PORT=5555
+DATA_PORT=5556
+CTRL_LOG=ctrl.log
+DATA_LOG=data.log
+
+CTRL_CMD="./scripts/forxv $ITER ./scripts/hts-test-harness-AI2-acq2106 $UUT $SHOT_TIME"
+DATA_CMD="./scripts/stream-to-ramdisk"
+
+
+echo KILL any previous services
+
+[ -e $CTRL_PID ] && (kill -s SIGINT $(cat $CTRL_PID); sleep 2)
+[ -e $DATA_PID ] && kill -s SIGINT $(cat $DATA_PID)
+
+
+echo START services UUT:$UUT ITER:$ITER SHOT_TIME $SHOT_TIME
+
+procServ -L $DATA_LOG -p $DATA_PID $DATA_PORT $DATA_CMD
+procServ --noautorestart -k 3 -L $CTRL_LOG -p $CTRL_PID $CTRL_PORT $CTRL_CMD
+echo CTRL: nc localhost $CTRL_PORT
+echo DATA: nc localhost $DATA_PORT
+echo logging to $CTRL_LOG $DATA_LOG
+
+
